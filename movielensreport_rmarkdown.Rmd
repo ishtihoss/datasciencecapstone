@@ -1,0 +1,183 @@
+---
+title: "MovieLensReport"
+author: "Md Ishtiaque Hossain"
+date: "8/21/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Executive Summary
+
+### Background and Motivation
+
+
+### DataSet
+For this project a movie rating predictor is created using the 'MovieLens' dataset. This data set can be found and downloaded here:
+  
+  - [MovieLens 10M dataset] https://grouplens.org/datasets/movielens/10m/
+  - [MovieLens 10M dataset - zip file] http://files.grouplens.org/datasets/movielens/ml-10m.zip
+
+### Goal
+The goal is to train a machine learning algorithm using the inputs of a provided training subset to predict movie ratings in a validation set.
+.
+
+### Data Loading and Setup
+
+Using the code provided in the course to create test and validation sets.
+
+
+################################
+# Create edx set, validation set
+################################
+
+# Note: this process could take a couple of minutes
+
+```{r, include=FALSE}
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(data.table)) install.packages("data.table", repos = "http://cran.us.r-project.org")
+
+# MovieLens 10M dataset:
+# https://grouplens.org/datasets/movielens/10m/
+# http://files.grouplens.org/datasets/movielens/ml-10m.zip
+
+dl <- tempfile()
+download.file("http://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
+
+ratings <- fread(text = gsub("::", "\t", readLines(unzip(dl, "ml-10M100K/ratings.dat"))),
+                 col.names = c("userId", "movieId", "rating", "timestamp"))
+
+movies <- str_split_fixed(readLines(unzip(dl, "ml-10M100K/movies.dat")), "\\::", 3)
+colnames(movies) <- c("movieId", "title", "genres")
+movies <- as.data.frame(movies) %>% mutate(movieId = as.numeric(levels(movieId))[movieId],
+                                           title = as.character(title),
+                                           genres = as.character(genres))
+
+movielens <- left_join(ratings, movies, by = "movieId")
+
+# Validation set will be 10% of MovieLens data
+
+set.seed(1, sample.kind="Rounding")
+# if using R 3.5 or earlier, use `set.seed(1)` instead
+test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+edx <- movielens[-test_index,]
+temp <- movielens[test_index,]
+
+# Make sure userId and movieId in validation set are also in edx set
+
+validation <- temp %>% 
+     semi_join(edx, by = "movieId") %>%
+     semi_join(edx, by = "userId")
+
+# Add rows removed from validation set back into edx set
+
+removed <- anti_join(temp, validation)
+edx <- rbind(edx, removed)
+
+rm(dl, ratings, movies, test_index, temp, movielens, removed)
+
+# Loading necessary packages
+
+library(tidyverse)
+library(tidyr)
+library(stringr)
+library(caret)
+library(ggrepel)
+library(ggthemes)
+library(data.table)
+library(caret)
+library(readr)
+library(gridExtra)
+```
+
+# 2. Methods and Analysis
+## Exploratory Analysis
+
+A quick review using the head() function shows that there are six columns in total. userId and movieId are unique identifiers for users and movies respectively. Rating column contains the ratings given by individual users. Timestamp records the actual time the rating was given. Title contains the name of the movie and the year it was released. Genre corresponds the genre of the movie. The genre column is rather interesting and it is easy to see that each movie can be simultaneously part of multiple genres.
+
+```{r, include=TRUE, echo=FALSE}
+head(edx)
+```
+
+We can take a quick look at the distinct number of users and movies in our training set:
+
+```{r,include=TRUE, echo=FALSE}
+edx %>% summarize(n_users=n_distinct(userId),
+                  n_movies= n_distinct(movieId))
+```
+
+And also the distinct number of users and movies in the validation set:
+
+```{r,include=TRUE,echo=FALSE}
+validation %>% summarize(n_users=n_distinct(userId),
+                         n_movies=n_distinct(movieId))
+```
+
+We see that the number of movies and users in both sets are roughly the same. Now let's look at the ratings distribution in the test set:
+
+```{r,include=TRUE,echo=FALSE}
+p1 <- edx %>% ggplot(aes(rating)) + geom_histogram(bins = 10,fill="green",color="black") + ggtitle("test set distribution of ratings")
+p2 <- validation %>% ggplot(aes(rating)) + geom_histogram(bins=10,fill="green",color="black") + ggtitle("validation set distribution of ratings")
+grid.arrange(p1,p2,nrow=1)
+
+```
+
+From the aforementioned charts, we can see that the distribution of ratings in both sets are roughly the same as well. Now let's look at how active/prolific the users are in rating movies in each dataset. We can see some users are more active in rating movies than the others. We should note that the train set has more prolific/active raters (users who have rated more than a 100 movies) compared to users in the validation set.
+
+```{r,include=TRUE,echo=FALSE}
+p1a <- edx %>% group_by(userId) %>% summarise(n=n()) %>% ggplot(aes(n)) + geom_histogram(bins = 10,fill="green",color="black") + scale_x_log10() + ggtitle("User ratings distribution in train set")
+p2a <- validation %>% group_by(userId) %>% summarise(n=n()) %>% ggplot(aes(n)) + geom_histogram(bins = 10,fill="green",color="black") + scale_x_log10() + ggtitle("User rating distribution in validation set")
+grid.arrange(p1a,p2a,nrow=2)  
+  
+```
+
+
+\pagebreak
+
+We initially noted that in the genre column, each movie can contain multiple genre. In this form, it is hard to see how many movies are in each individual genre. Therefore we will split the genre row so each movie gets a single genre value in each cell. Movies that belong to multiple genre will have multime observations because we are going to split each genre into it's own row. This makes it easier to calculate the number of movies in each genre. We can see that drama has the highest number of movies, and documentary, IMAX and "no genres listed" having the lowest number of movies.
+
+```{r,include=TRUE,echo=FALSE}
+# Splitting the genre column
+edx_genre_split <- edx %>% separate_rows(genres, sep ="\\|")
+# Calculating number of movies by genre
+edx_genre_split %>% group_by(genres) %>% summarise(n=n()) %>% arrange(desc(n)) %>% ggplot(aes(x=reorder(genres, n), y=n)) +
+  geom_bar(stat='identity', fill="blue") + coord_flip(y=c(0, 6000000)) +
+  labs(x="", y="Number of Movies") +
+  geom_text(aes(label= n), hjust=-0.1, size=3) +
+  labs(title="Number of movies by genre" , caption = "source data: edx set")
+
+
+```
+
+
+Now we look at the average ratings in each genre.Turns out Film-Noir and Documentary are the highest rated movies on average, while Sci-Fi and Horror are the lowest rated ones.
+
+```{r,include=TRUE,echo=FALSE}
+# Calculating average rating for each genre
+edx_genre_split %>% group_by(genres) %>% summarise(avg_rating=mean(rating)) %>% arrange(desc(avg_rating)) %>% ggplot(aes(x=reorder(genres, avg_rating), y=avg_rating)) +
+  geom_bar(stat='identity', fill="blue") + coord_flip(y=c(0, 5)) +
+  labs(x="", y="Average Rating") +
+  geom_text(aes(label= avg_rating), hjust=-0.1, size=3) +
+  labs(title="Average ratings by genre" , caption = "source data: edx set")
+
+```
+
+Now let's look at the overall average in the edx set. 
+
+```{r,include=TRUE,echo=TRUE}
+
+# Calculating overall average rating across all genres
+
+mean(edx$rating)
+
+
+```
+
+As we can see the average rating across all genres is 3.51, so we can assume users are rather generous with their ratings, since it's more than 70% across all movies.
+
+
+
+
