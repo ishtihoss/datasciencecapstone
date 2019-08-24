@@ -9,9 +9,14 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# 1. Executive Summary
+### 1. Executive Summary
+
+# [Insert Executive Summary]
+
 
 ### Background and Motivation
+
+#[Insert Background and Motivation]
 
 
 ### DataSet
@@ -21,7 +26,8 @@ For this project a movie rating predictor is created using the 'MovieLens' datas
   - [MovieLens 10M dataset - zip file] http://files.grouplens.org/datasets/movielens/ml-10m.zip
 
 ### Goal
-The goal is to train a machine learning algorithm using the inputs of a provided training subset to predict movie ratings in a validation set.
+
+# [Insert Goal]
 .
 
 ### Data Loading and Setup
@@ -60,7 +66,7 @@ movielens <- left_join(ratings, movies, by = "movieId")
 
 # Validation set will be 10% of MovieLens data
 
-set.seed(1, sample.kind="Rounding")
+set.seed(1)
 # if using R 3.5 or earlier, use `set.seed(1)` instead
 test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
 edx <- movielens[-test_index,]
