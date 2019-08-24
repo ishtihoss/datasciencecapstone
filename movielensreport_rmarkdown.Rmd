@@ -97,6 +97,7 @@ library(data.table)
 library(caret)
 library(readr)
 library(gridExtra)
+library(lubridate)
 ```
 
 # 2. Methods and Analysis
@@ -131,7 +132,7 @@ grid.arrange(p1,p2,nrow=1)
 
 ```
 
-From the aforementioned charts, we can see that the distribution of ratings in both sets are roughly the same as well. Now let's look at how active/prolific the users are in rating movies in each dataset. We can see some users are more active in rating movies than the others. We should note that the train set has more prolific/active raters (users who have rated more than a 100 movies) compared to users in the validation set.
+From the aforementioned charts, we can see that the distribution of ratings in both sets are roughly the same as well. Now let's look at how active/prolific the users are in rating movies in each dataset. 
 
 ```{r,include=TRUE,echo=FALSE}
 p1a <- edx %>% group_by(userId) %>% summarise(n=n()) %>% ggplot(aes(n)) + geom_histogram(bins = 10,fill="green",color="black") + scale_x_log10() + ggtitle("User ratings distribution in train set")
@@ -139,7 +140,7 @@ p2a <- validation %>% group_by(userId) %>% summarise(n=n()) %>% ggplot(aes(n)) +
 grid.arrange(p1a,p2a,nrow=2)  
   
 ```
-
+We can see some users are more active in rating movies than the others. We should note that the train set has more prolific/active raters (users who have rated more than a 100 movies) compared to users in the validation set.
 
 \pagebreak
 
@@ -177,12 +178,68 @@ Now let's look at the overall average in the edx set.
 
 # Calculating overall average rating across all genres
 
-mean(edx$rating)
+mu <- mean(edx$rating)
 
 
 ```
-
 As we can see the average rating across all genres is 3.51, so we can assume users are rather generous with their ratings, since it's more than 70% across all movies.
+
+# Visualizing genre effect
+
+```{r,echo=FALSE,include=TRUE}
+genre_effect <- edx_genre_split %>% group_by(genres) %>% summarise(b_g=mean(rating)-mu)
+
+genre_effect %>% qplot(b_g, geom ="histogram", bins = 10, data = ., color = I("black"))
+
+```
+But once we group ratings by genre and visualize it using a histogram, we see that there is high variability in rating averages from genre to genre. Therefore it is safe to declare that the genre of the movie has a significant enough effect on its rating for us to consider it for modelling. 
+
+# Visualizing movie effect
+
+```{r,echo=FALSE,include=TRUE}
+movie_effect <- edx %>% group_by(movieId) %>% summarise(b_i=mean(rating)-mu)
+
+movie_effect %>% qplot(b_i,geom= "histogram",bins=10,data=.,color=I("black"))
+
+```
+
+Once again, we observe high variability in ratings depending on the movie. Which, intuitively makes sense.
+
+
+
+#Visualizing the time effect on ratings
+
+```{r,include=TRUE,echo=FALSE}
+edx %>% 
+  mutate(date = round_date(as_datetime(timestamp), unit = "week")) %>%
+  group_by(date) %>%
+  summarize(rating = mean(rating)) %>%
+  ggplot(aes(date, rating)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  ggtitle("Timestamp, time unit : week")+
+  labs(subtitle = "average ratings",
+       caption = "source data : edx set")
+
+```
+
+While it does appear that older movies enjoyed slightly better ratings, the effect of age is not strong. 
+
+
+
+
+\pagebreak
+
+# Creating a model
+
+We want to create a model that incorporates user effect, movie effect and genre effect. The time effect has been dropped because it does not look significant. 
+
+
+```{r,echo=FALSE,include=TRUE}
+
+```
+
+
 
 
 
