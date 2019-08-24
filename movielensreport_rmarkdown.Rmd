@@ -187,9 +187,7 @@ As we can see the average rating across all genres is 3.51, so we can assume use
 # Visualizing genre effect
 
 ```{r,echo=FALSE,include=TRUE}
-genre_effect <- edx_genre_split %>% group_by(genres) %>% summarise(b_g=mean(rating)-mu)
-
-genre_effect %>% qplot(b_g, geom ="histogram", bins = 10, data = ., color = I("black"))
+edx_genre_split %>% group_by(genres) %>% summarise(b_g=mean(rating)) %>% qplot(b_g, geom ="histogram", bins = 10, data = ., color = I("black"))
 
 ```
 But once we group ratings by genre and visualize it using a histogram, we see that there is high variability in rating averages from genre to genre. Therefore it is safe to declare that the genre of the movie has a significant enough effect on its rating for us to consider it for modelling. 
@@ -197,14 +195,23 @@ But once we group ratings by genre and visualize it using a histogram, we see th
 # Visualizing movie effect
 
 ```{r,echo=FALSE,include=TRUE}
-movie_effect <- edx %>% group_by(movieId) %>% summarise(b_i=mean(rating)-mu)
-
-movie_effect %>% qplot(b_i,geom= "histogram",bins=10,data=.,color=I("black"))
+edx %>% group_by(movieId) %>% summarise(b_i=mean(rating)) %>% qplot(b_i,geom= "histogram",bins=10,data=.,color=I("black"))
 
 ```
 
 Once again, we observe high variability in ratings depending on the movie. Which, intuitively makes sense.
 
+# Visualizing user effects
+
+```{r,echo=FALSE,include=TRUE}
+edx %>% group_by(userId) %>% 
+  summarize(b_u = mean(rating)) %>% 
+  filter(n()>=100) %>%
+  ggplot(aes(b_u)) + 
+  geom_histogram(bins = 30, color = "black")
+```
+
+In the aforementioned histogram, we can clearly see that user effect is rather strong, and rating variability is high from user to user. While some users are very generous with their ratings, others are rather conservative. For predicting ratings, user effect therefore should be taken into account. 
 
 
 #Visualizing the time effect on ratings
