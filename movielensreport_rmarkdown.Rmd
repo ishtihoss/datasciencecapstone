@@ -179,6 +179,7 @@ Now let's look at the overall average in the edx set.
 # Calculating overall average rating across all genres
 
 mu <- mean(edx$rating)
+mu
 
 
 ```
@@ -237,12 +238,82 @@ While it does appear that older movies enjoyed slightly better ratings, the effe
 
 \pagebreak
 
-# Creating a model
+## Creating a model
 
 We want to create a model that incorporates user effect, movie effect and genre effect. The time effect has been dropped because it does not look significant. 
 
+### Creating Loss Function
+We start by creating an RMSE function that we will use to measure the accuracy of our models. 
 
-```{r,echo=FALSE,include=TRUE}
+```{r, echo=TRUE,include=TRUE}
+RMSE <- function(true_ratings, predicted_ratings){
+  sqrt(mean((true_ratings - predicted_ratings)^2))
+}
+```
+
+### Building the Model
+
+First, we create a very simple model using just the average and the movie effect.
+
+```{r,echo=TRUE,include=TRUE}
+
+# Calculating overall average 
+
+mu <- mean(edx$rating) 
+
+# Calculating Naive RMSE using "Just the average"
+
+RMSE(validation$rating,mu)
+
+
+# Calculating movie bias
+
+movie_avgs <- edx %>% 
+  group_by(movieId) %>% 
+  summarize(b_i = mean(rating - mu))
+
+# Predicted rating using average and movie bias
+
+predicted_ratings <- mu + validation %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  pull(b_i)
+
+
+RMSE(validation$rating,predicted_ratings)
+
+# Calculating user bias
+
+user_avgs <- edx %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  group_by(userId) %>%
+  summarize(b_u = mean(rating - mu - b_i))
+
+predicted_ratings_1 <- validation %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  mutate(pred = mu + b_i + b_u) %>%
+  pull(pred)
+
+RMSE(validation$rating,predicted_ratings_1)
+
+```
+We see that after adding user effect and movie effect, the RMSE is improved considerably. Now we are going to take the genre effect into account.
+
+```{r,include=TRUE,echo=TRUE}
+
+genre_avgs <- edx_genre_split %>% 
+  left_join(movie_avgs, by='movieId') %>% left_join(user_avgs,by='userId') %>%
+  group_by(genres) %>%
+  summarize(b_g = mean(rating - mu - b_i-b_u))
+
+predicted_ratings_2 <- validation %>% separate_rows(genres, sep ="\\|") %>%
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  left_join(genre_avgs,by='genres') %>%
+  mutate(pred = mu + b_i + b_u + b_g) %>%
+  pull(pred)
+
+RMSE(validation$rating,predicted_ratings_2)
 
 ```
 
