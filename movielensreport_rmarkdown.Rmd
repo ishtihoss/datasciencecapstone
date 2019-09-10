@@ -264,7 +264,10 @@ mu <- mean(edx$rating)
 # Calculating Naive RMSE using "Just the average"
 
 RMSE(validation$rating,mu)
+```
 
+Then we factor in the movie bias
+```{r,echo=TRUE,include=TRUE}
 
 # Calculating movie bias
 
@@ -280,6 +283,11 @@ predicted_ratings <- mu + validation %>%
 
 
 RMSE(validation$rating,predicted_ratings)
+```
+
+After factoring movie bias, we see that our prediction accuracy has improved. Let's see if it improves even further if we take user bias into consideration.
+
+```{r,echo=TRUE,include=TRUE}
 
 # Calculating user bias
 
@@ -295,25 +303,66 @@ predicted_ratings_1 <- validation %>%
   pull(pred)
 
 RMSE(validation$rating,predicted_ratings_1)
-
 ```
-We see that after adding user effect and movie effect, the RMSE is improved considerably. Now we are going to take the genre effect into account.
 
-```{r,include=TRUE,echo=TRUE}
+As we have observed from our previous analysisi that ratings can vary based on genre, so we will consider the genre bias as well.
 
-genre_avgs <- edx_genre_split %>% 
-  left_join(movie_avgs, by='movieId') %>% left_join(user_avgs,by='userId') %>%
-  group_by(genres) %>%
-  summarize(b_g = mean(rating - mu - b_i-b_u))
+```{r,echo=TRUE,include=TRUE}
 
-predicted_ratings_2 <- validation %>% separate_rows(genres, sep ="\\|") %>%
-  left_join(movie_avgs, by='movieId') %>%
-  left_join(user_avgs, by='userId') %>%
-  left_join(genre_avgs,by='genres') %>%
-  mutate(pred = mu + b_i + b_u + b_g) %>%
-  pull(pred)
+# Calculating genre bias
+
+genre_avgs <- edx %>% left_join(movie_avgs,by='movieId') %>% left_join(user_avgs,by='userId') %>% group_by(genres) %>% summarise(b_g=mean(rating-mu-b_i-b_u))
+
+predicted_ratings_2 <- validation %>%
+  left_join(movie_avgs,by='movieId') %>% left_join(user_avgs,by='userId') %>% left_join(genre_avgs,by='genres') %>% mutate(pred=mu+b_i+b_u+b_g)  %>% pull(pred)
 
 RMSE(validation$rating,predicted_ratings_2)
+```
+
+However, we might be able to improve the accuracy of our model even further if we use the regularization technique.
+
+```{r,echo=TRUE,include=TRUE}
+lambdas <- seq(0, 10, 0.25)
+
+rmses <- sapply(lambdas, function(l){
+    
+    mu_reg <- mean(edx$rating)
+    
+    b_i_reg <- edx %>% 
+        group_by(movieId) %>%
+        summarize(b_i_reg = sum(rating - mu_reg)/(n()+l))
+    
+    b_u_reg <- edx %>% 
+        left_join(b_i_reg, by="movieId") %>%
+        group_by(userId) %>%
+        summarize(b_u_reg = sum(rating - b_i_reg - mu_reg)/(n()+l))
+    
+    b_g_reg <- edx %>% left_join(b_i_reg,by='movieId') %>% left_join(b_u_reg,by='userId') %>% group_by(genres) %>% summarise(b_g_reg=sum(rating - b_i_reg - b_u_reg - mu_reg)/(n()+l))
+    
+    predicted_ratings_b_i_u_g <- 
+        validation %>% 
+        left_join(b_i_reg, by = "movieId") %>%
+        left_join(b_u_reg, by = "userId") %>%
+        left_join(b_g_reg,by='genres') %>%
+        mutate(pred = mu_reg + b_i_reg + b_u_reg+b_g_reg) %>%
+        .$pred
+    
+    return(RMSE(validation$rating,predicted_ratings_b_i_u_g))
+})
+
+
+```
+
+# Let's look at the optimum Lamda 
+
+```{r,echo=TRUE,include=TRUE}
+
+qplot(lambdas, rmses)
+
+# RMSE for regularized model that incorporates genre, user and movie bias
+
+min(rmses)
+
 
 ```
 
