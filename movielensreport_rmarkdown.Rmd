@@ -127,6 +127,12 @@ A quick review using the head() function shows that there are six columns in tot
 head(edx)
 ```
 
+Here's a quick summary of the dataset:
+
+```{r, include=TRUE, echo=FALSE}
+summary(edx)
+```
+
 We can take a quick look at the distinct number of users and movies in our training set:
 
 ```{r,include=TRUE, echo=FALSE}
