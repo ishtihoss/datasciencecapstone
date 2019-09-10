@@ -9,25 +9,18 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### 1. Executive Summary
+# 1. Executive Summary
 
-# [Insert Executive Summary]
-
-
-### Background and Motivation
-
-#[Insert Background and Motivation]
+an introduction/overview/executive summary section that describes the dataset and summarizes the goal of the project and key steps that were performed
 
 
-### DataSet
+## DataSet
 For this project a movie rating predictor is created using the 'MovieLens' dataset. This data set can be found and downloaded here:
   
   - [MovieLens 10M dataset] https://grouplens.org/datasets/movielens/10m/
   - [MovieLens 10M dataset - zip file] http://files.grouplens.org/datasets/movielens/ml-10m.zip
 
-### Goal
 
-# [Insert Goal]
 .
 
 ### Data Loading and Setup
@@ -101,6 +94,16 @@ library(lubridate)
 ```
 
 # 2. Methods and Analysis
+
+## Methods Used
+
+We used the following model to predict movie rating:
+
+Y = mu + b_i + b_u + b_g + ind_error
+
+Y is our prediction, mu is the average, b_i is movie bias, b_u is user bias, b_g is genre bias and "ind_error" is the independent error in our predictions. To minimize error in prediction we use regularization to penalize large estimates formed using small sample sizes. 
+
+
 ## Exploratory Analysis
 
 A quick review using the head() function shows that there are six columns in total. userId and movieId are unique identifiers for users and movies respectively. Rating column contains the ratings given by individual users. Timestamp records the actual time the rating was given. Title contains the name of the movie and the year it was released. Genre corresponds the genre of the movie. The genre column is rather interesting and it is easy to see that each movie can be simultaneously part of multiple genres.
