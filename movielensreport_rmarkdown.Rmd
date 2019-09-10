@@ -16,7 +16,7 @@ The dataset being used for this project is the 10M version of MovieLens dataset 
 
 The goal of this project is to create a rating prediction model using the train set, which can be used to predict ratings for movies in the validation set. The predicted ratings will be compared to true ratings in the validation set using RMSE (Root Mean Square Error).
 
-According to project guidelines, to score full 25 points, RMSE needs to be lower or equal to 0.8649. 
+According to project guidelines, to score full 25 points, RMSE needs to be lower or equal to 0.8649. In order to accomplish this, a predictive model was created using training data, by taking user bias, movie bias and genre bias into account. Then regularization was used to further reduce RMSE. 
 
 
 ## DataSet
@@ -28,7 +28,7 @@ For this project a movie rating predictor is created using the 'MovieLens' datas
 
 ## Data Loading and Setup
 
-Using the code provided in the course to create test and validation sets.
+We use the following code to create training and validation sets.
 
 
 ################################
