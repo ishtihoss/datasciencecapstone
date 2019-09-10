@@ -114,9 +114,9 @@ library(tinytex)
 
 We used the following model to predict movie rating:
 
-Y = mu + b_i + b_u + b_g + ind_error
+Y = mu + b_i + b_u + b_g + i_e
 
-Y is our prediction, mu is the average, b_i is movie bias, b_u is user bias, b_g is genre bias and "ind_error" is the independent error in our predictions. To minimize error in prediction we use regularization to penalize large estimates formed using small sample sizes. 
+Y is our prediction, mu is the average, b_i is movie bias, b_u is user bias, b_g is genre bias and "i_e" is the independent error in our predictions. We also use regularization to penalize large estimates formed using small sample sizes. 
 
 
 ## Exploratory Analysis
@@ -282,6 +282,7 @@ mu <- mean(edx$rating)
 # Calculating Naive RMSE using "Just the average"
 
 just_the_avg <- RMSE(validation$rating,mu)
+print(just_the_avg)
 ```
 
 Then we factor in the movie bias
@@ -301,6 +302,7 @@ predicted_ratings <- mu + validation %>%
 
 
 movie_bias_model <- RMSE(validation$rating,predicted_ratings)
+print(movie_bias_model)
 ```
 
 After factoring movie bias, we see that our prediction accuracy has improved. Let's see if it improves even further if we take user bias into consideration.
@@ -321,6 +323,7 @@ predicted_ratings_1 <- validation %>%
   pull(pred)
 
 movie_and_user_bias_model <- RMSE(validation$rating,predicted_ratings_1)
+print(movie_and_user_bias_model)
 ```
 
 As we have observed from our previous analysisi that ratings can vary based on genre, so we will consider the genre bias as well.
@@ -335,6 +338,7 @@ predicted_ratings_2 <- validation %>%
   left_join(movie_avgs,by='movieId') %>% left_join(user_avgs,by='userId') %>% left_join(genre_avgs,by='genres') %>% mutate(pred=mu+b_i+b_u+b_g)  %>% pull(pred)
 
 movie_user_genre_bias_model <- RMSE(validation$rating,predicted_ratings_2)
+print(movie_user_genre_bias_model)
 ```
 
 However, we might be able to improve the accuracy of our model even further if we use the regularization technique.
@@ -380,7 +384,7 @@ qplot(lambdas, rmses)
 # RMSE for regularized model that incorporates genre, user and movie bias
 
 regularized_model_with_movie_genre_user_bias <- min(rmses)
-
+print(regularized_model_with_movie_genre_user_bias)
 
 ```
 
@@ -394,7 +398,6 @@ There seems to be dramatic improvement over the "just the average approach" when
 results <- data.frame(Model_Name=c("Just the average","Movie Bias", "Movie + User Bias", "Movie + User + Genre Bias", "Regularized Movie+User+Genre Bias"),RMSE=c(1.060651,0.9437046,0.8655329,0.8651946,0.8646783))
 
 results %>% ggplot(aes(x=reorder(Model_Name,RMSE),RMSE)) + geom_bar(stat="identity",fill="green") + coord_flip(y=c(0,2)) + labs(title="RMSE by Model",x="Model Name",y="RMSE")+geom_text(aes(label=RMSE))
-
 
 ```
 
