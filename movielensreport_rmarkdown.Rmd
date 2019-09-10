@@ -11,7 +11,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # 1. Executive Summary
 
-an introduction/overview/executive summary section that describes the dataset and summarizes the goal of the project and key steps that were performed
+
+The dataset being used for this project is the 10M version of MovieLens dataset compiled by GroupLens research. The key features of this dataset are userId, movieId, genre, timestamp, title and lastly, the feature that we are trying to predict; rating. 
+
+The goal of this project is to create a rating prediction model using the train set, which can be used to predict ratings for movies in the validation set. The predicted ratings will be compared to true ratings in the validation set using RMSE (Root Mean Square Error).
+
+According to project guidelines, to score full 25 points, RMSE needs to be lower or equal to 0.8649. 
 
 
 ## DataSet
@@ -79,6 +84,17 @@ edx <- rbind(edx, removed)
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 
 # Loading necessary packages
+if(!require(tidyr)) install.packages("tidyr")
+if(!require(stringr)) install.packages("stringr")
+if(!require(ggrepel)) install.packages("ggrepel")
+if(!require(ggthemes)) install.packages("ggthemes")
+if(!require(data.table)) install.packages("data.table")
+if(!require(readr)) install.packages("readr")
+if(!require(dplyr)) install.packages("dplyr")
+if(!require(gridExtra)) install.packages("gridExtra")
+if(!require(dslabs)) install.packages("dslabs")
+if(!require(lubridate)) install.packages("lubridate")
+if(!require(tinytex)) install.packages("tinytex")
 
 library(tidyverse)
 library(tidyr)
@@ -91,6 +107,7 @@ library(caret)
 library(readr)
 library(gridExtra)
 library(lubridate)
+library(tinytex)
 ```
 
 # 2. Methods and Analysis
@@ -188,7 +205,7 @@ mu
 ```
 As we can see the average rating across all genres is 3.51, so we can assume users are rather generous with their ratings, since it's more than 70% across all movies.
 
-# Visualizing genre effect
+## Visualizing genre effect
 
 ```{r,echo=FALSE,include=TRUE}
 edx_genre_split %>% group_by(genres) %>% summarise(b_g=mean(rating)) %>% qplot(b_g, geom ="histogram", bins = 10, data = ., color = I("black"))
@@ -196,7 +213,7 @@ edx_genre_split %>% group_by(genres) %>% summarise(b_g=mean(rating)) %>% qplot(b
 ```
 But once we group ratings by genre and visualize it using a histogram, we see that there is high variability in rating averages from genre to genre. Therefore it is safe to declare that the genre of the movie has a significant enough effect on its rating for us to consider it for modelling. 
 
-# Visualizing movie effect
+## Visualizing movie effect
 
 ```{r,echo=FALSE,include=TRUE}
 edx %>% group_by(movieId) %>% summarise(b_i=mean(rating)) %>% qplot(b_i,geom= "histogram",bins=10,data=.,color=I("black"))
@@ -205,7 +222,7 @@ edx %>% group_by(movieId) %>% summarise(b_i=mean(rating)) %>% qplot(b_i,geom= "h
 
 Once again, we observe high variability in ratings depending on the movie. Which, intuitively makes sense.
 
-# Visualizing user effects
+## Visualizing user effects
 
 ```{r,echo=FALSE,include=TRUE}
 edx %>% group_by(userId) %>% 
@@ -218,7 +235,7 @@ edx %>% group_by(userId) %>%
 In the aforementioned histogram, we can clearly see that user effect is rather strong, and rating variability is high from user to user. While some users are very generous with their ratings, others are rather conservative. For predicting ratings, user effect therefore should be taken into account. 
 
 
-#Visualizing the time effect on ratings
+## Visualizing the time effect on ratings
 
 ```{r,include=TRUE,echo=FALSE}
 edx %>% 
@@ -369,7 +386,7 @@ regularized_model_with_movie_genre_user_bias <- min(rmses)
 
 ```
 
-### Results
+# Results
 
 There seems to be dramatic improvement over the "just the average approach" when we use movie and user bias into account. And slight improvements when we incorporate genre bias and regularization techniques. 
 
@@ -383,7 +400,7 @@ results %>% ggplot(aes(x=reorder(Model_Name,RMSE),RMSE)) + geom_bar(stat="identi
 
 ```
 
-### Conclusion
+# Conclusion
 
 By using regularization and modelling user bias, movie bias and genre bias, it is possible to reduce the RMSE to 0.8646783, which meets the "RMSE <= 0.8649" requirement for full 25 points. The time effect was not modelled because from the initial analysis it became apparent that the time bias is not as strong as the other three. However the RMSE can be reduced even further by using advanced techniques like ensemble learning and model stacking. But for a large dataset, those techniques cannot be used from a desktop/laptop computer due to insufficient memory. The next step would be to use a cloud computing platform that supports machine learning, like Azure or Google AI Platform and use ensemble learning  and model stacking to achieve more accurate results. 
 
