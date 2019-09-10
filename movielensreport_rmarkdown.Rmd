@@ -263,7 +263,7 @@ mu <- mean(edx$rating)
 
 # Calculating Naive RMSE using "Just the average"
 
-RMSE(validation$rating,mu)
+just_the_avg <- RMSE(validation$rating,mu)
 ```
 
 Then we factor in the movie bias
@@ -282,7 +282,7 @@ predicted_ratings <- mu + validation %>%
   pull(b_i)
 
 
-RMSE(validation$rating,predicted_ratings)
+movie_bias_model <- RMSE(validation$rating,predicted_ratings)
 ```
 
 After factoring movie bias, we see that our prediction accuracy has improved. Let's see if it improves even further if we take user bias into consideration.
@@ -302,7 +302,7 @@ predicted_ratings_1 <- validation %>%
   mutate(pred = mu + b_i + b_u) %>%
   pull(pred)
 
-RMSE(validation$rating,predicted_ratings_1)
+movie_and_user_bias_model <- RMSE(validation$rating,predicted_ratings_1)
 ```
 
 As we have observed from our previous analysisi that ratings can vary based on genre, so we will consider the genre bias as well.
@@ -316,7 +316,7 @@ genre_avgs <- edx %>% left_join(movie_avgs,by='movieId') %>% left_join(user_avgs
 predicted_ratings_2 <- validation %>%
   left_join(movie_avgs,by='movieId') %>% left_join(user_avgs,by='userId') %>% left_join(genre_avgs,by='genres') %>% mutate(pred=mu+b_i+b_u+b_g)  %>% pull(pred)
 
-RMSE(validation$rating,predicted_ratings_2)
+movie_user_genre_bias_model <- RMSE(validation$rating,predicted_ratings_2)
 ```
 
 However, we might be able to improve the accuracy of our model even further if we use the regularization technique.
@@ -361,12 +361,25 @@ qplot(lambdas, rmses)
 
 # RMSE for regularized model that incorporates genre, user and movie bias
 
-min(rmses)
+regularized_model_with_movie_genre_user_bias <- min(rmses)
 
 
 ```
 
+### Results
+```{r,echo=FALSE,include=TRUE}
 
+
+results <- data.frame(Model_Name=c("Just the average","Movie Bias", "Movie + User Bias", "Movie + User + Genre Bias", "Regularized Movie+User+Genre Bias"),RMSE=c(1.060651,0.9437046,0.8655329,0.8651946,0.8646783))
+
+results %>% ggplot(aes(x=reorder(Model_Name,RMSE),RMSE)) + geom_bar(stat="identity",fill="green") + coord_flip(y=c(0,2)) + labs(title="RMSE by Model",x="Model Name",y="RMSE")+geom_text(aes(label=RMSE))
+
+
+```
+
+### Conclusion
+
+By using regularization and modelling user bias, movie bias and genre bias, it is possible to reduce the RMSE to 0.8646783, which meets the "RMSE <= 0.8649" requirement for full 25 points. The time effect was not modelled because from the initial analysis it became apparent that the time bias is not as strong as the other three. However the RMSE can be reduced even further by using advanced techniques like ensemble learning and model stacking. But for a large dataset, those techniques cannot be used from a desktop/laptop computer due to insufficient memory. The next step would be to use a cloud computing platform that supports machine learning, like Azure or Google AI Platform and use ensemble learning  and model stacking to achieve more accurate results. 
 
 
 
