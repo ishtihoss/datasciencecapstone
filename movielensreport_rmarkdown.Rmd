@@ -26,18 +26,16 @@ For this project a movie rating predictor is created using the 'MovieLens' datas
   - [MovieLens 10M dataset - zip file] http://files.grouplens.org/datasets/movielens/ml-10m.zip
 
 
-.
-
-### Data Loading and Setup
+## Data Loading and Setup
 
 Using the code provided in the course to create test and validation sets.
 
 
 ################################
-# Create edx set, validation set
+### Create edx set, validation set
 ################################
 
-# Note: this process could take a couple of minutes
+### Note: this process could take a couple of minutes
 
 ```{r, include=FALSE}
 if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
@@ -373,7 +371,7 @@ rmses <- sapply(lambdas, function(l){
 
 ```
 
-# Let's look at the optimum Lamda 
+## Let's look at the optimum Lamda 
 
 ```{r,echo=TRUE,include=TRUE}
 
