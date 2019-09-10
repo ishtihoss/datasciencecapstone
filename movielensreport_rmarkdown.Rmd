@@ -141,10 +141,10 @@ validation %>% summarize(n_users=n_distinct(userId),
                          n_movies=n_distinct(movieId))
 ```
 
-We see that the number of movies and users in both sets are roughly the same. Now let's look at the ratings distribution in the test set:
+We see that the number of movies and users in both sets are roughly the same. Now let's look at the ratings distribution in the train set:
 
 ```{r,include=TRUE,echo=FALSE}
-p1 <- edx %>% ggplot(aes(rating)) + geom_histogram(bins = 10,fill="green",color="black") + ggtitle("test set distribution of ratings")
+p1 <- edx %>% ggplot(aes(rating)) + geom_histogram(bins = 10,fill="green",color="black") + ggtitle("train set distribution of ratings")
 p2 <- validation %>% ggplot(aes(rating)) + geom_histogram(bins=10,fill="green",color="black") + ggtitle("validation set distribution of ratings")
 grid.arrange(p1,p2,nrow=1)
 
@@ -250,9 +250,6 @@ edx %>%
 ```
 
 While it does appear that older movies enjoyed slightly better ratings, the effect of age is not strong. 
-
-
-
 
 \pagebreak
 
@@ -381,6 +378,7 @@ rmses <- sapply(lambdas, function(l){
 
 qplot(lambdas, rmses)
 
+lambdas[which.min(rmses)]
 # RMSE for regularized model that incorporates genre, user and movie bias
 
 regularized_model_with_movie_genre_user_bias <- min(rmses)
@@ -403,7 +401,7 @@ results %>% ggplot(aes(x=reorder(Model_Name,RMSE),RMSE)) + geom_bar(stat="identi
 
 # Conclusion
 
-By using regularization and modelling user bias, movie bias and genre bias, it is possible to reduce the RMSE to 0.8646783, which meets the "RMSE <= 0.8649" requirement for full 25 points. The time effect was not modelled because from the initial analysis it became apparent that the time bias is not as strong as the other three. However the RMSE can be reduced even further by using advanced techniques like ensemble learning and model stacking. But for a large dataset, those techniques cannot be used from a desktop/laptop computer due to insufficient memory. The next step would be to use a cloud computing platform that supports machine learning, like Azure or Google AI Platform and use ensemble learning  and model stacking to achieve more accurate results. 
+By using regularization and modelling user bias, movie bias and genre bias, it is possible to reduce the RMSE to 0.8644501, which meets the "RMSE <= 0.8649" requirement for full 25 points. The time effect was not modelled because from the initial analysis it became apparent that the time bias is not as strong as the other three. However the RMSE can be reduced even further by using advanced techniques like ensemble learning and model stacking. But for a large dataset, those techniques cannot be used from a desktop/laptop computer due to insufficient memory. The next step would be to use a cloud computing platform that supports machine learning, like Azure or Google AI Platform and use ensemble learning  and model stacking to achieve more accurate results. 
 
 
 
