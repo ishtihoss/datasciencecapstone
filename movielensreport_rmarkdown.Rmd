@@ -367,6 +367,9 @@ regularized_model_with_movie_genre_user_bias <- min(rmses)
 ```
 
 ### Results
+
+There seems to be dramatic improvement over the "just the average approach" when we use movie and user bias into account. And slight improvements when we incorporate genre bias and regularization techniques. 
+
 ```{r,echo=FALSE,include=TRUE}
 
 
