@@ -395,7 +395,7 @@ There seems to be dramatic improvement over the "just the average approach" when
 ```{r,echo=FALSE,include=TRUE}
 
 
-results <- data.frame(Model_Name=c("Just the average","Movie Bias", "Movie + User Bias", "Movie + User + Genre Bias", "Regularized Movie+User+Genre Bias"),RMSE=c(1.060651,0.9437046,0.8655329,0.8651946,0.8646783))
+results <- data.frame(Model_Name=c("Just the average","Movie Bias", "Movie + User Bias", "Movie + User + Genre Bias", "Regularized Movie+User+Genre Bias"),RMSE=c(just_the_avg,movie_bias_model,movie_and_user_bias_model,movie_user_genre_bias_model,regularized_model_with_movie_genre_user_bias))
 
 results %>% ggplot(aes(x=reorder(Model_Name,RMSE),RMSE)) + geom_bar(stat="identity",fill="green") + coord_flip(y=c(0,2)) + labs(title="RMSE by Model",x="Model Name",y="RMSE")+geom_text(aes(label=RMSE))
 
