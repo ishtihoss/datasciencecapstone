@@ -102,6 +102,9 @@ library(tinytex)
 
 head(edx)
 
+# Quicky summary of the edx dataset
+
+summary(edx)
 
 # We can take a quick look at the distinct number of users and movies in our training set:
   
@@ -117,10 +120,10 @@ validation %>% summarize(n_users=n_distinct(userId),
                          n_movies=n_distinct(movieId))
 
 
-# We see that the number of movies and users in both sets are roughly the same. Now let's look at the ratings distribution in the test set:
+# We see that the number of movies and users in both sets are roughly the same. Now let's look at the ratings distribution:
 
 
-p1 <- edx %>% ggplot(aes(rating)) + geom_histogram(bins = 10,fill="green",color="black") + ggtitle("test set distribution of ratings")
+p1 <- edx %>% ggplot(aes(rating)) + geom_histogram(bins = 10,fill="green",color="black") + ggtitle("train set distribution of ratings")
 p2 <- validation %>% ggplot(aes(rating)) + geom_histogram(bins=10,fill="green",color="black") + ggtitle("validation set distribution of ratings")
 grid.arrange(p1,p2,nrow=1)
 
